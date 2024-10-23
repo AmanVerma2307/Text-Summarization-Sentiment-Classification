@@ -47,15 +47,21 @@ def Glove_Gen(tgt_vocab,sos_token,eos_token):
     eos_emb = np.mean(embeddings,axis=0,keepdims=True) # embedding for EOS token.
     embeddings = np.vstack((sos_emb,eos_emb,embeddings))
 
+    vocab_word2idx = {term:idx for idx,term in enumerate(vocab)}
+    vocab_idx2word = {idx:word for word,idx in vocab_word2idx.items()}
+
     ##### Iteration
     for word, idx in tgt_vocab.items():
+        
+        if(word in vocab_word2idx):
+            glove_embeddings.append(embeddings[vocab_word2idx[word]])
 
-        if(word in vocab):
-            for j, word_vocab in enumerate(vocab):
-                if(word_vocab == word):
-                    glove_embeddings.append(embeddings[j])
+            #for j, word_vocab in enumerate(vocab):
+            #    if(word_vocab == word):
+            #        glove_embeddings.append(embeddings[j])
+
         else:
-            embeddings.append(sos_emb)
+            glove_embeddings.append(embeddings[0])
     
     del(embeddings)
     gc.collect()
