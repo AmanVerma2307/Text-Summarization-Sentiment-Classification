@@ -12,6 +12,7 @@ from Preprocess import preprocess
 from VocabularyGeneration import vocab_gen
 from DataLoader import SummarySet
 from model import EncoderRNN, DecoderRNN
+from model_attention import AttnDecoderRNN
 
 ####### Input arguments
 parser = argparse.ArgumentParser()
@@ -24,7 +25,7 @@ parser.add_argument('--tf_prob',
                     help="Teacher forcing probability")
 parser.add_argument('--model',
                     type=str,
-                    help="Choice of model: lstm or attention lstm")
+                    help="Choice of model: lstm or lstm_attn")
 parser.add_argument('--model_name',
                     type=str,
                     help="Name of the model to be saved")
@@ -99,8 +100,25 @@ class lstm_model(torch.nn.Module):
                                                                 target.to(device),tf_prob)
         return decoder_outputs, decoder_hidden
 
+class lstm_attn_model(torch.nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.encoder = EncoderRNN(embedding_dim,hidden_dim,enc_num_layers) # Encoder layer
+        self.decoder = AttnDecoderRNN(embedding_dim,hidden_dim,dec_num_layers,vocab_size,args.max_len) # Decoder layer
+
+    def forward(self,source,target,tf_prob):
+        encoder_output, encoder_hidden = self.encoder.forward(source)
+        decoder_outputs, decoder_hidden = self.decoder.forward(encoder_output,
+                                                               (torch.sum(encoder_hidden[0],axis=0,keepdim=True),
+                                                                torch.sum(encoder_hidden[1],axis=0,keepdim=True)),
+                                                                target.to(device),tf_prob)
+        return decoder_outputs, decoder_hidden
+
 if(args.model == 'lstm'):
     seq2seq_model = lstm_model().to(device)
+if(args.model == 'lstm_attn'):
+    seq2seq_model = lstm_attn_model().to(device)
 print('Model Formulated')
 
 ###### Training
