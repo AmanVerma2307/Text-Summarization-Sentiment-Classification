@@ -60,11 +60,11 @@ gc.collect()
  
 ##### Dataloader
 TrainLoader = torch.utils.data.DataLoader(TrainDataset,
-                                   batch_size=128,
+                                   batch_size=160,
                                    shuffle=True,
                                    drop_last=False)
 ValLoader = torch.utils.data.DataLoader(ValDataset,
-                                   batch_size=128, 
+                                   batch_size=160, 
                                    shuffle=False,
                                    drop_last=False)
 print('Dataloader set')
@@ -139,10 +139,6 @@ def train_epoch(dataloader, model, optimizer, criterion):
 
         with torch.set_grad_enabled(True):
             decoder_outputs,_ = model.forward(source,target,args.tf_prob)
-            
-            #print(decoder_outputs.view(-1,decoder_outputs.size(-1)))
-            #print(target.view(-1))
-            
             loss = criterion(decoder_outputs.view(-1,decoder_outputs.size(-1)),
                             target.view(-1))
             
